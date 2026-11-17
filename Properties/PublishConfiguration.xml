@@ -12,6 +12,7 @@ Limits how far **guide lines** of existing roads can snap the road tool.
 In the vanilla road tool, guide lines extend up to 512 m from road ends, so new roads often snap to guide lines of distant roads. This mod adds a "Guide line reach" slider (16-512 m). Snaps to guide lines farther than this from their road end are ignored.
 
 - Default (512 m) = vanilla behaviour. "Reset to defaults" button included.
+- Known limitation: where a distant guide line would win, guide lines are skipped for that position, so a nearby guide line may not snap there either.
 - Roads only. Other networks and other snapping options are unchanged.
 - Stores only its own settings. Never writes to save games.
 - Supported game version: 1.6.4f1. If the patched code changes after a game update, the mod disables itself and logs an error.
@@ -25,6 +26,7 @@ In the vanilla road tool, guide lines extend up to 512 m from road ends, so new 
 バニラでは道路の端からガイドラインが最大 512 m 伸びるため、離れた道路のガイドラインにスナップしてしまいます。このModは「ガイドラインの到達距離」のスライダー（16〜512 m）を追加し、それより遠いガイドラインへのスナップを無視します。
 
 - 既定値（512 m）はバニラと同じ動きです。「既定値に戻す」ボタンもあります。
+- 既知の制限: 遠いガイドラインにスナップしそうな位置ではガイドライン自体を使わないため、近くのガイドラインにもスナップしないことがあります。
 - 道路にだけ効きます。ほかのネットワークやスナップ設定は変わりません。
 - 保存するのは自分の設定だけで、セーブデータには書き込みません。
 - 対応ゲームバージョン: 1.6.4f1。アップデートでパッチ対象が変わった場合は、自分を無効にしてログにエラーを出します。

@@ -39,8 +39,10 @@ namespace SnapRangeControl
         private static Func<NetToolSystem, JobHandle, bool, JobHandle> s_SnapControlPoints;
 
         private static bool s_InRerun;
-        private static bool s_HasRawPoint;
-        private static ControlPoint s_RawPoint;
+        private static bool s_Disabled;
+        private static bool s_HasRawPoints;
+        private static int s_RawPointCount;
+        private static ControlPoint[] s_RawPoints = new ControlPoint[8];
 
         private static float s_LastDebugLogTime;
         private static float s_LastDebugReach = -1f;
@@ -107,20 +109,25 @@ namespace SnapRangeControl
             }
             s_Harmony = null;
             IsActive = false;
-            s_HasRawPoint = false;
+            s_HasRawPoints = false;
             s_InRerun = false;
         }
 
+        /// <summary>
+        /// Stops the patch from doing anything for the rest of the session. The detour stays in place
+        /// (unpatching from inside the patched call is unsafe); Prefix/Postfix become no-ops.
+        /// </summary>
         private static void Disable(Exception e)
         {
-            Mod.log.Error(e, "Unexpected error in guide line reach patch. SnapRangeControl disabled itself for this session.");
-            Remove();
+            s_Disabled = true;
+            s_HasRawPoints = false;
+            Mod.log.Error(e, "Unexpected error in guide line reach patch. SnapRangeControl disabled itself for this session; the road tool behaves like vanilla.");
         }
 
         private static bool ShouldHandle(NetToolSystem tool)
         {
             Setting settings = Mod.Settings;
-            if (!IsActive || settings == null || !(settings.IsLimiting || settings.DebugLogging))
+            if (s_Disabled || !IsActive || settings == null || !(settings.IsLimiting || settings.DebugLogging))
                 return false;
             if (tool.actualMode == NetToolSystem.Mode.Replace)
                 return false;
@@ -132,8 +139,8 @@ namespace SnapRangeControl
 
         private static void Prefix(NetToolSystem __instance, JobHandle inputDeps)
         {
-            s_HasRawPoint = false;
-            if (s_InRerun)
+            s_HasRawPoints = false;
+            if (s_InRerun || s_Disabled)
                 return;
 
             try
@@ -141,15 +148,21 @@ namespace SnapRangeControl
                 if (!ShouldHandle(__instance))
                     return;
 
-                // Make sure nothing is still writing the control points, then remember the raw (unsnapped) point.
+                // Make sure nothing is still writing the control points, then remember all of them as they are
+                // before snapping. SnapJob writes the last point and, in some modes, the one before it.
                 inputDeps.Complete();
                 NativeList<ControlPoint> controlPoints = __instance.GetControlPoints(out JobHandle deps);
                 deps.Complete();
                 if (!controlPoints.IsCreated || controlPoints.Length == 0)
                     return;
 
-                s_RawPoint = controlPoints[controlPoints.Length - 1];
-                s_HasRawPoint = true;
+                int count = controlPoints.Length;
+                if (s_RawPoints.Length < count)
+                    s_RawPoints = new ControlPoint[math.max(count, s_RawPoints.Length * 2)];
+                for (int i = 0; i < count; i++)
+                    s_RawPoints[i] = controlPoints[i];
+                s_RawPointCount = count;
+                s_HasRawPoints = true;
             }
             catch (Exception e)
             {
@@ -159,9 +172,9 @@ namespace SnapRangeControl
 
         private static void Postfix(NetToolSystem __instance, bool removeUpgrade, ref JobHandle __result)
         {
-            if (s_InRerun || !s_HasRawPoint)
+            if (s_InRerun || s_Disabled || !s_HasRawPoints)
                 return;
-            s_HasRawPoint = false;
+            s_HasRawPoints = false;
 
             try
             {
@@ -183,12 +196,17 @@ namespace SnapRangeControl
 
                 bool reject = settings.IsLimiting && reach > settings.MaxGuideReach;
                 if (settings.DebugLogging)
-                    DebugLog(reach, reject, settings.MaxGuideReach);
+                    DebugLog(reach, reject, settings.MaxGuideReach, CountNearGuideLines(snapped, snapLines, settings.MaxGuideReach));
                 if (!reject)
                     return;
 
-                // Recompute the snap once from the raw point with guide lines disabled.
-                controlPoints[controlPoints.Length - 1] = s_RawPoint;
+                // SnapJob does not change the number of control points outside Replace mode; bail out if it did.
+                if (controlPoints.Length != s_RawPointCount)
+                    return;
+
+                // Recompute the snap once from the unsnapped points with guide lines disabled.
+                for (int i = 0; i < s_RawPointCount; i++)
+                    controlPoints[i] = s_RawPoints[i];
                 ref Snap onMask = ref s_SnapOnMask(__instance);
                 Snap savedOnMask = onMask;
                 onMask &= ~Snap.GuideLines;
@@ -234,14 +252,31 @@ namespace SnapRangeControl
             return best;
         }
 
-        private static void DebugLog(float reach, bool rejected, int limit)
+        /// <summary>
+        /// Counts guide lines whose origin is within the limit of the cursor. When a snap is rejected these are
+        /// dropped too (the rerun disables all guide lines), so this shows what a rejection costs.
+        /// </summary>
+        private static int CountNearGuideLines(ControlPoint snapped, NativeList<SnapLine> snapLines, int limit)
+        {
+            float2 hit = snapped.m_HitPosition.xz;
+            int count = 0;
+            for (int i = 0; i < snapLines.Length; i++)
+            {
+                SnapLine line = snapLines[i];
+                if ((line.m_Flags & SnapLineFlags.GuideLine) != 0 && math.distance(line.m_Curve.a.xz, hit) <= limit)
+                    count++;
+            }
+            return count;
+        }
+
+        private static void DebugLog(float reach, bool rejected, int limit, int nearGuideLines)
         {
             float now = Time.realtimeSinceStartup;
             if (!rejected && math.abs(reach - s_LastDebugReach) < 1f && now - s_LastDebugLogTime < 0.5f)
                 return;
             s_LastDebugLogTime = now;
             s_LastDebugReach = reach;
-            Mod.log.Info($"Guide line snap: reach={reach:F1} m, limit={limit} m, {(rejected ? "REJECTED" : "kept")}");
+            Mod.log.Info($"Guide line snap: reach={reach:F1} m, limit={limit} m, {(rejected ? "REJECTED" : "kept")}, guide lines within limit={nearGuideLines}{(rejected && nearGuideLines > 0 ? " (also dropped)" : "")}");
         }
     }
 }

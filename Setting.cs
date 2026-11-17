@@ -6,7 +6,7 @@ using Game.UI;
 namespace SnapRangeControl
 {
     /// <summary>
-    /// Mod settings. Stored only in the mod settings file (ModsSettings), never in save games.
+    /// Mod settings. Stored only in the mod's own settings file, never in save games.
     /// </summary>
     [FileLocation(nameof(SnapRangeControl))]
     [SettingsUIGroupOrder(kGeneralGroup, kDebugGroup)]
