@@ -1,0 +1,14 @@
+# Claude Code memory (personal, not tracked)
+CLAUDE.md
+docs/claude/
+
+# Decompiled game code and game assets must never be committed
+decompiled/
+*.decompiled.cs
+_decompiled/
+
+# Build output
+bin/
+obj/
+.vs/
+*.user
