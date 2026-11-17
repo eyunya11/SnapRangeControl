@@ -1,0 +1,54 @@
+﻿<Publish>
+	<!--Id must be set in order to update existed mod. it is not required for publishing mod for the first time-->
+	<ModId Value="" />
+	<!--Name of the mod to display to players-->
+	<DisplayName Value="Snap Range Control" />
+	<!--Short description of the mod-->
+	<ShortDescription Value="Limit how far guide lines of existing roads can snap the road tool." />
+	<!--Long description of the mod. Single line or multi line. Supports minimal markdown subset-->
+	<LongDescription>
+Limits how far **guide lines** of existing roads can snap the road tool.
+
+In the vanilla road tool, guide lines extend up to 512 m from road ends, so new roads often snap to guide lines of distant roads. This mod adds a "Guide line reach" slider (16-512 m). Snaps to guide lines farther than this from their road end are ignored.
+
+- Default (512 m) = vanilla behaviour. "Reset to defaults" button included.
+- Roads only. Other networks and other snapping options are unchanged.
+- Stores only its own settings. Never writes to save games.
+- Supported game version: 1.6.4f1. If the patched code changes after a game update, the mod disables itself and logs an error.
+
+**Note:** The Japanese text in this mod was translated with the help of AI.
+
+---
+
+道路ツールで、既存の道路の**ガイドライン**へのスナップが効く距離を制限します。
+
+バニラでは道路の端からガイドラインが最大 512 m 伸びるため、離れた道路のガイドラインにスナップしてしまいます。このModは「ガイドラインの到達距離」のスライダー（16〜512 m）を追加し、それより遠いガイドラインへのスナップを無視します。
+
+- 既定値（512 m）はバニラと同じ動きです。「既定値に戻す」ボタンもあります。
+- 道路にだけ効きます。ほかのネットワークやスナップ設定は変わりません。
+- 保存するのは自分の設定だけで、セーブデータには書き込みません。
+- 対応ゲームバージョン: 1.6.4f1。アップデートでパッチ対象が変わった場合は、自分を無効にしてログにエラーを出します。
+
+**注意:** このModの日本語は、AIを使って翻訳しています。
+	</LongDescription>
+	<!--Thumbnail-->
+	<Thumbnail Value="Properties/Thumbnail.png" />
+	<!--Screenshot, can be set multiple times-->
+	<Screenshot Value="" />
+	<!--Tag, can be set multiple times-->
+	<Tag Value="Code Mod" />
+	<!--Link to the forum post where the mod can be discussed-->
+	<ForumLink Value="" />
+	<!--Version of the mod-->
+	<ModVersion Value="0.1.0" />
+	<!--Recommended version of the base game to use the mod-->
+	<GameVersion Value="1.6.*" />
+	<!--Dependency for the mod, can be set multiple times-->
+	<Dependency Id="" />
+	<!--Required DLC, can be set multiple times. Supported values are "Landmark Buildings", "San Fransisco Set", "Beach Properties", "Urban Promenades", "Modern Architecture"-->
+	<RequiredDLC Value="" />
+	<!--Change log for new version. Single line or multi line. Supports minimal markdown subset-->
+	<ChangeLog Value="Initial release." />
+	<!--External link, can be set multiple times. supported types are "discord", "github", "youtube", "twitch", "twitter", "x", "paypal", "patreon", "buymeacoffee", "kofi", "crowdin", "gitlab", "gofundme", "bluesky"-->
+	<ExternalLink Type="" Url="" />
+</Publish>

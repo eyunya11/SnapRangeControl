@@ -10,5 +10,6 @@ _decompiled/
 # Build output
 bin/
 obj/
+Library/
 .vs/
 *.user
