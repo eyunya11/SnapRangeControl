@@ -1,4 +1,4 @@
-import { cloneElement, isValidElement, ReactElement, ReactNode } from "react";
+import { Children, cloneElement, isValidElement, ReactElement, ReactNode } from "react";
 import { bindValue, trigger, useValue } from "cs2/api";
 import { useLocalization } from "cs2/l10n";
 import { ModuleRegistryExtend } from "cs2/modding";
@@ -78,6 +78,8 @@ export const extendMouseToolOptions: ModuleRegistryExtend = (Component: any) => 
       return result;
     }
     const element = result as ReactElement<{ children?: ReactNode }>;
-    return cloneElement(element, undefined, element.props.children, <GuideReachSection key="snapRangeControl" />);
+    // Flatten the vanilla children first: passing an array and our element as separate arguments would nest the array
+    // and make React treat it as an unkeyed list.
+    return cloneElement(element, undefined, ...Children.toArray(element.props.children), <GuideReachSection key="snapRangeControl" />);
   };
 };

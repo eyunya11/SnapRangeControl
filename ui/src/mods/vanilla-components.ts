@@ -14,7 +14,8 @@ let registry: ModuleRegistry | null = null;
 const cache: Partial<Record<Key, any>> = {};
 
 function get(key: Key): any {
-  if (!(key in cache)) {
+  // Cache only found values, so a lookup that ran before the module was registered is retried next time.
+  if (cache[key] === undefined) {
     const [path, exportName] = MODULES[key];
     cache[key] = registry?.registry.get(path)?.[exportName];
   }

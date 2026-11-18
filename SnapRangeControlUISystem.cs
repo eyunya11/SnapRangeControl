@@ -42,9 +42,9 @@ namespace SnapRangeControl
             AddBinding(new ValueBinding<int>(kGroup, "minReach", Setting.kMinGuideReach));
             AddBinding(new ValueBinding<int>(kGroup, "maxReach", Setting.kVanillaGuideReach));
 
-            AddBinding(new TriggerBinding(kGroup, "increase", () => Run(() => Mod.Settings?.StepReach(+1))));
-            AddBinding(new TriggerBinding(kGroup, "decrease", () => Run(() => Mod.Settings?.StepReach(-1))));
-            AddBinding(new TriggerBinding(kGroup, "toggle", () => Run(() => Mod.Settings?.ToggleEnabled())));
+            AddBinding(new TriggerBinding(kGroup, "increase", () => StepReach(+1)));
+            AddBinding(new TriggerBinding(kGroup, "decrease", () => StepReach(-1)));
+            AddBinding(new TriggerBinding(kGroup, "toggle", ToggleEnabled));
 
             if (settings != null)
             {
@@ -71,11 +71,11 @@ namespace SnapRangeControl
             if (roadTool)
             {
                 if (m_IncreaseAction != null && m_IncreaseAction.WasPerformedThisFrame())
-                    Run(() => settings.StepReach(+1));
+                    StepReach(+1);
                 if (m_DecreaseAction != null && m_DecreaseAction.WasPerformedThisFrame())
-                    Run(() => settings.StepReach(-1));
+                    StepReach(-1);
                 if (m_ToggleAction != null && m_ToggleAction.WasPerformedThisFrame())
-                    Run(() => settings.ToggleEnabled());
+                    ToggleEnabled();
             }
 
             m_VisibleBinding.Update(roadTool);
@@ -91,6 +91,12 @@ namespace SnapRangeControl
             if (action != null && action.shouldBeEnabled != enabled)
                 action.shouldBeEnabled = enabled;
         }
+
+        // The lambdas live in their own methods, so a closure is allocated only when a key or button is actually used,
+        // not on every OnUpdate call.
+        private static void StepReach(int direction) => Run(() => Mod.Settings?.StepReach(direction));
+
+        private static void ToggleEnabled() => Run(() => Mod.Settings?.ToggleEnabled());
 
         private static void Run(Action action)
         {
