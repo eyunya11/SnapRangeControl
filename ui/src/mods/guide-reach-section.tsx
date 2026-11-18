@@ -68,6 +68,10 @@ const GuideReachSection = () => {
  * children of the element it returns. If its shape is unexpected, the vanilla output is returned unchanged.
  */
 export const extendMouseToolOptions: ModuleRegistryExtend = (Component: any) => {
+  if (typeof Component !== "function") {
+    console.error("[SnapRangeControl] MouseToolOptions is not a function component; the tool options UI is not added.");
+    return Component;
+  }
   return (props: any) => {
     const result = Component(props);
     if (!isValidElement(result)) {

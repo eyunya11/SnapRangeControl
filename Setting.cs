@@ -13,9 +13,9 @@ namespace SnapRangeControl
     [FileLocation(nameof(SnapRangeControl))]
     [SettingsUIGroupOrder(kGeneralGroup, kKeyBindingGroup, kDebugGroup)]
     [SettingsUIShowGroupName(kGeneralGroup, kKeyBindingGroup, kDebugGroup)]
-    [SettingsUIKeyboardAction(kIncreaseReachAction, ActionType.Button, usages: new[] { Usages.kDefaultUsage }, interactions: new[] { "Press" })]
-    [SettingsUIKeyboardAction(kDecreaseReachAction, ActionType.Button, usages: new[] { Usages.kDefaultUsage }, interactions: new[] { "Press" })]
-    [SettingsUIKeyboardAction(kToggleEnabledAction, ActionType.Button, usages: new[] { Usages.kDefaultUsage }, interactions: new[] { "Press" })]
+    [SettingsUIKeyboardAction(kIncreaseReachAction, ActionType.Button, usages: new[] { Usages.kToolUsage }, interactions: new[] { "Press" })]
+    [SettingsUIKeyboardAction(kDecreaseReachAction, ActionType.Button, usages: new[] { Usages.kToolUsage }, interactions: new[] { "Press" })]
+    [SettingsUIKeyboardAction(kToggleEnabledAction, ActionType.Button, usages: new[] { Usages.kToolUsage }, interactions: new[] { "Press" })]
     public class Setting : ModSetting
     {
         public const string kSection = "Main";
@@ -99,9 +99,11 @@ namespace SnapRangeControl
             MaxGuideReach = math.clamp(snapped, kMinGuideReach, kVanillaGuideReach);
         }
 
-        /// <summary>Changes the reach by one step (direction +1 or -1) and saves.</summary>
+        /// <summary>Changes the reach by one step (direction +1 or -1) and saves. Does nothing while the mod is turned off.</summary>
         public void StepReach(int direction)
         {
+            if (!Enabled)
+                return;
             NormalizeReach();
             int next = math.clamp(MaxGuideReach + direction * kReachStep, kMinGuideReach, kVanillaGuideReach);
             if (next == MaxGuideReach)
