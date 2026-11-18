@@ -2,7 +2,6 @@ using System;
 using Colossal.UI.Binding;
 using Game;
 using Game.Input;
-using Game.Prefabs;
 using Game.Tools;
 using Game.UI;
 
@@ -15,6 +14,12 @@ namespace SnapRangeControl
     public partial class SnapRangeControlUISystem : UISystemBase
     {
         public const string kGroup = "snapRangeControl";
+
+        /// <summary>Seconds without further changes before the settings file is written (clicks and key presses are batched).</summary>
+        private const float kSaveDelay = 0.5f;
+
+        private static bool s_SavePending;
+        private static float s_SaveDue;
 
         private ToolSystem m_ToolSystem;
         private NetToolSystem m_NetToolSystem;
@@ -61,7 +66,7 @@ namespace SnapRangeControl
             Setting settings = Mod.Settings;
             bool roadTool = settings != null
                 && m_ToolSystem.activeTool == m_NetToolSystem
-                && m_NetToolSystem.prefab is RoadPrefab;
+                && GuideReachPatch.AppliesTo(m_NetToolSystem);
 
             // Only listen to the keys while the road tool is in use, so they never clash with other bindings elsewhere.
             SetActionEnabled(m_IncreaseAction, roadTool);
@@ -78,12 +83,27 @@ namespace SnapRangeControl
                     ToggleEnabled();
             }
 
+            if (s_SavePending && UnityEngine.Time.realtimeSinceStartup >= s_SaveDue)
+                FlushPendingSave();
+
             m_VisibleBinding.Update(roadTool);
             if (settings != null)
             {
                 m_EnabledBinding.Update(settings.Enabled);
                 m_ReachBinding.Update(settings.MaxGuideReach);
             }
+        }
+
+        protected override void OnStopRunning()
+        {
+            FlushPendingSave();
+            base.OnStopRunning();
+        }
+
+        protected override void OnDestroy()
+        {
+            FlushPendingSave();
+            base.OnDestroy();
         }
 
         private static void SetActionEnabled(ProxyAction action, bool enabled)
@@ -94,22 +114,47 @@ namespace SnapRangeControl
 
         // The lambdas live in their own methods, so a closure is allocated only when a key or button is actually used,
         // not on every OnUpdate call.
-        private static void StepReach(int direction) => Run(() => Mod.Settings?.StepReach(direction));
+        private static void StepReach(int direction) => Run(settings => settings.StepReach(direction));
 
-        private static void ToggleEnabled() => Run(() => Mod.Settings?.ToggleEnabled());
+        private static void ToggleEnabled() => Run(settings =>
+        {
+            settings.ToggleEnabled();
+            return true;
+        });
 
-        private static void Run(Action action)
+        /// <summary>Runs a change on the settings in memory and schedules a save. The function returns true when something changed.</summary>
+        private static void Run(Func<Setting, bool> change)
         {
             try
             {
-                action();
                 Setting settings = Mod.Settings;
-                if (settings != null && settings.DebugLogging)
+                if (settings == null || !change(settings))
+                    return;
+
+                s_SavePending = true;
+                s_SaveDue = UnityEngine.Time.realtimeSinceStartup + kSaveDelay;
+                if (settings.DebugLogging)
                     Mod.log.Info($"Settings changed from UI/keys: Enabled={settings.Enabled}, MaxGuideReach={settings.MaxGuideReach}");
             }
             catch (Exception e)
             {
                 Mod.log.Error(e, "Failed to change settings from UI/keys.");
+            }
+        }
+
+        /// <summary>Writes the settings file if a change is waiting. Called after a short idle time, and on shutdown.</summary>
+        public static void FlushPendingSave()
+        {
+            if (!s_SavePending)
+                return;
+            s_SavePending = false;
+            try
+            {
+                Mod.Settings?.Save();
+            }
+            catch (Exception e)
+            {
+                Mod.log.Error(e, "Failed to save settings.");
             }
         }
     }

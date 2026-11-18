@@ -99,22 +99,31 @@ namespace SnapRangeControl
             MaxGuideReach = math.clamp(snapped, kMinGuideReach, kVanillaGuideReach);
         }
 
-        /// <summary>Changes the reach by one step (direction +1 or -1) and saves. Does nothing while the mod is turned off.</summary>
-        public void StepReach(int direction)
+        /// <summary>
+        /// Changes the reach by one step (direction +1 or -1) in memory. Does nothing while the mod is turned off.
+        /// Returns true when the value changed. Call <see cref="Save"/> afterwards (the UI system batches saves).
+        /// </summary>
+        public bool StepReach(int direction)
         {
             if (!Enabled)
-                return;
+                return false;
             NormalizeReach();
             int next = math.clamp(MaxGuideReach + direction * kReachStep, kMinGuideReach, kVanillaGuideReach);
             if (next == MaxGuideReach)
-                return;
+                return false;
             MaxGuideReach = next;
-            ApplyAndSave();
+            return true;
         }
 
+        /// <summary>Turns the mod's effect on or off in memory. Call <see cref="Save"/> afterwards.</summary>
         public void ToggleEnabled()
         {
             Enabled = !Enabled;
+        }
+
+        /// <summary>Applies the current values and writes the settings file.</summary>
+        public void Save()
+        {
             ApplyAndSave();
         }
     }

@@ -127,7 +127,19 @@ namespace SnapRangeControl
         private static bool ShouldHandle(NetToolSystem tool)
         {
             Setting settings = Mod.Settings;
-            if (s_Disabled || !IsActive || settings == null || !(settings.IsLimiting || settings.DebugLogging))
+            if (settings == null || !(settings.IsLimiting || settings.DebugLogging))
+                return false;
+            return AppliesTo(tool);
+        }
+
+        /// <summary>
+        /// True when the patch is working and the road tool is in a state where guide line snapping can happen:
+        /// not Replace mode, a road prefab, and guide line snapping turned on. Also used by the UI to decide
+        /// when its controls are shown, so both stay in step.
+        /// </summary>
+        internal static bool AppliesTo(NetToolSystem tool)
+        {
+            if (s_Disabled || !IsActive)
                 return false;
             if (tool.actualMode == NetToolSystem.Mode.Replace)
                 return false;

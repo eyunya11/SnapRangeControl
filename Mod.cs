@@ -40,6 +40,7 @@ namespace SnapRangeControl
         {
             log.Info(nameof(OnDispose));
             GuideReachPatch.Remove();
+            SnapRangeControlUISystem.FlushPendingSave();
             if (Settings != null)
             {
                 Settings.UnregisterInOptionsUI();
