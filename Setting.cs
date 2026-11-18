@@ -1,7 +1,9 @@
 ﻿using Colossal.IO.AssetDatabase;
+using Game.Input;
 using Game.Modding;
 using Game.Settings;
 using Game.UI;
+using Unity.Mathematics;
 
 namespace SnapRangeControl
 {
@@ -9,17 +11,26 @@ namespace SnapRangeControl
     /// Mod settings. Stored only in the mod's own settings file, never in save games.
     /// </summary>
     [FileLocation(nameof(SnapRangeControl))]
-    [SettingsUIGroupOrder(kGeneralGroup, kDebugGroup)]
-    [SettingsUIShowGroupName(kGeneralGroup, kDebugGroup)]
+    [SettingsUIGroupOrder(kGeneralGroup, kKeyBindingGroup, kDebugGroup)]
+    [SettingsUIShowGroupName(kGeneralGroup, kKeyBindingGroup, kDebugGroup)]
+    [SettingsUIKeyboardAction(kIncreaseReachAction, ActionType.Button, usages: new[] { Usages.kToolUsage }, interactions: new[] { "Press" })]
+    [SettingsUIKeyboardAction(kDecreaseReachAction, ActionType.Button, usages: new[] { Usages.kToolUsage }, interactions: new[] { "Press" })]
+    [SettingsUIKeyboardAction(kToggleEnabledAction, ActionType.Button, usages: new[] { Usages.kToolUsage }, interactions: new[] { "Press" })]
     public class Setting : ModSetting
     {
         public const string kSection = "Main";
         public const string kGeneralGroup = "General";
+        public const string kKeyBindingGroup = "KeyBindings";
         public const string kDebugGroup = "Debug";
+
+        public const string kIncreaseReachAction = "IncreaseReach";
+        public const string kDecreaseReachAction = "DecreaseReach";
+        public const string kToggleEnabledAction = "ToggleEnabled";
 
         /// <summary>Vanilla guide line reach for roads: PlaceableNetData.m_SnapDistance (8 m) * 64.</summary>
         public const int kVanillaGuideReach = 512;
-        public const int kMinGuideReach = 16;
+        public const int kReachStep = 32;
+        public const int kMinGuideReach = kReachStep;
 
         public Setting(IMod mod) : base(mod)
         {
@@ -29,7 +40,7 @@ namespace SnapRangeControl
         [SettingsUISection(kSection, kGeneralGroup)]
         public bool Enabled { get; set; }
 
-        [SettingsUISlider(min = kMinGuideReach, max = kVanillaGuideReach, step = 8, scalarMultiplier = 1, unit = Unit.kLength)]
+        [SettingsUISlider(min = kMinGuideReach, max = kVanillaGuideReach, step = kReachStep, scalarMultiplier = 1, unit = Unit.kLength)]
         [SettingsUISection(kSection, kGeneralGroup)]
         public int MaxGuideReach { get; set; }
 
@@ -45,6 +56,28 @@ namespace SnapRangeControl
             }
         }
 
+        [SettingsUIKeyboardBinding(BindingKeyboard.None, kIncreaseReachAction)]
+        [SettingsUISection(kSection, kKeyBindingGroup)]
+        public ProxyBinding IncreaseReachBinding { get; set; }
+
+        [SettingsUIKeyboardBinding(BindingKeyboard.None, kDecreaseReachAction)]
+        [SettingsUISection(kSection, kKeyBindingGroup)]
+        public ProxyBinding DecreaseReachBinding { get; set; }
+
+        [SettingsUIKeyboardBinding(BindingKeyboard.None, kToggleEnabledAction)]
+        [SettingsUISection(kSection, kKeyBindingGroup)]
+        public ProxyBinding ToggleEnabledBinding { get; set; }
+
+        [SettingsUIButton]
+        [SettingsUISection(kSection, kKeyBindingGroup)]
+        public bool ResetBindings
+        {
+            set
+            {
+                ResetKeyBindings();
+            }
+        }
+
         [SettingsUISection(kSection, kDebugGroup)]
         public bool DebugLogging { get; set; }
 
@@ -56,6 +89,42 @@ namespace SnapRangeControl
             Enabled = true;
             MaxGuideReach = kVanillaGuideReach;
             DebugLogging = false;
+        }
+
+        /// <summary>Keeps the reach within range and on the 32 m grid (older versions allowed 16 m and 8 m steps).</summary>
+        public void NormalizeReach()
+        {
+            int clamped = math.clamp(MaxGuideReach, kMinGuideReach, kVanillaGuideReach);
+            int snapped = (int)math.round(clamped / (float)kReachStep) * kReachStep;
+            MaxGuideReach = math.clamp(snapped, kMinGuideReach, kVanillaGuideReach);
+        }
+
+        /// <summary>
+        /// Changes the reach by one step (direction +1 or -1) in memory. Does nothing while the mod is turned off.
+        /// Returns true when the value changed. Call <see cref="Save"/> afterwards (the UI system batches saves).
+        /// </summary>
+        public bool StepReach(int direction)
+        {
+            if (!Enabled)
+                return false;
+            NormalizeReach();
+            int next = math.clamp(MaxGuideReach + direction * kReachStep, kMinGuideReach, kVanillaGuideReach);
+            if (next == MaxGuideReach)
+                return false;
+            MaxGuideReach = next;
+            return true;
+        }
+
+        /// <summary>Turns the mod's effect on or off in memory. Call <see cref="Save"/> afterwards.</summary>
+        public void ToggleEnabled()
+        {
+            Enabled = !Enabled;
+        }
+
+        /// <summary>Applies the current values and writes the settings file.</summary>
+        public void Save()
+        {
+            ApplyAndSave();
         }
     }
 }

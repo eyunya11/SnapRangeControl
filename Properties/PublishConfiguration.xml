@@ -9,7 +9,9 @@
 	<LongDescription>
 Limits how far **guide lines** of existing roads can snap the road tool.
 
-In the vanilla road tool, guide lines extend up to 512 m from road ends, so new roads often snap to guide lines of distant roads. This mod adds a "Guide line reach" slider (16-512 m). Snaps to guide lines farther than this from their road end are ignored.
+In the vanilla road tool, guide lines extend up to 512 m from road ends, so new roads often snap to guide lines of distant roads. This mod adds a "Guide line reach" setting (32-512 m). Snaps to guide lines farther than this from their road end are ignored.
+
+- Adjust it in the road tool's tool options panel, with optional key bindings (no keys assigned by default), or in the settings.
 
 - Default (512 m) = vanilla behaviour. "Reset to defaults" button included.
 - Known limitation: where a distant guide line would win, guide lines are skipped for that position, so a nearby guide line may not snap there either.
@@ -23,7 +25,9 @@ In the vanilla road tool, guide lines extend up to 512 m from road ends, so new 
 
 道路ツールで、既存の道路の**ガイドライン**へのスナップが効く距離を制限します。
 
-バニラでは道路の端からガイドラインが最大 512 m 伸びるため、離れた道路のガイドラインにスナップしてしまいます。このModは「ガイドラインの到達距離」のスライダー（16〜512 m）を追加し、それより遠いガイドラインへのスナップを無視します。
+バニラでは道路の端からガイドラインが最大 512 m 伸びるため、離れた道路のガイドラインにスナップしてしまいます。このModは「ガイドラインの到達距離」の設定（32〜512 m）を追加し、それより遠いガイドラインへのスナップを無視します。
+
+- 道路ツールのツールオプション欄、キー（既定では未割り当て）、設定画面のどれからでも変えられます。
 
 - 既定値（512 m）はバニラと同じ動きです。「既定値に戻す」ボタンもあります。
 - 既知の制限: 遠いガイドラインにスナップしそうな位置ではガイドライン自体を使わないため、近くのガイドラインにもスナップしないことがあります。

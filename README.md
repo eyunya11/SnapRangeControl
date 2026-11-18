@@ -30,9 +30,17 @@ Options → Snap Range Control
 | Setting | Description |
 |---|---|
 | Enable | Turn the mod's effect on or off. |
-| Guide line reach | 16–512 m. 512 m = vanilla. |
+| Guide line reach | 32–512 m in 32 m steps. 512 m = vanilla. |
 | Reset to defaults | Restore vanilla behaviour. |
+| Key bindings | Increase / decrease the reach by 32 m, and toggle the mod. No keys are assigned by default. Keys work only while the road tool is selected. |
 | Debug logging | Write guide line snap distances to `Logs/SnapRangeControl.log`. |
+
+### In-game controls
+
+While the road tool is selected, the tool options panel shows a **Guide line reach** section:
+
+- Guide line icon: turn the mod's effect on or off.
+- Arrow buttons: decrease / increase the reach by 32 m. The current value is shown between them.
 
 ## Save games
 
@@ -50,13 +58,16 @@ The mod stores only its own settings file. It never writes to save games, so rem
 
 ## Building
 
-Requires the official Cities: Skylines II Modding Toolchain (installed from the game's Options → Modding).
+Requires the official Cities: Skylines II Modding Toolchain (installed from the game's Options → Modding) and Node.js 18 or later for the UI module (`ui/`, based on the toolchain's UI template).
 
 ```
+cd ui
+npm install
+cd ..
 dotnet build -c Release
 ```
 
-The build deploys the mod to `%USERPROFILE%\AppData\LocalLow\Colossal Order\Cities Skylines II\Mods\SnapRangeControl`.
+`dotnet build` also builds the UI module (`npm run build` in `ui/`). The build deploys the mod to `%USERPROFILE%\AppData\LocalLow\Colossal Order\Cities Skylines II\Mods\SnapRangeControl`.
 
 ## License
 
@@ -94,9 +105,17 @@ MIT
 | 設定 | 内容 |
 |---|---|
 | 有効にする | Modの効果のオン/オフ |
-| ガイドラインの到達距離 | 16〜512 m。512 m でバニラと同じ |
+| ガイドラインの到達距離 | 32〜512 m（32 m 刻み）。512 m でバニラと同じ |
+| キー割り当て | 到達距離の増減（32 m ずつ）と、Modのオン/オフ。既定ではキーを割り当てていません。道路ツールを選んでいるときだけ効きます |
 | 既定値に戻す | バニラと同じ動きに戻す |
 | デバッグログ | スナップ距離を `Logs/SnapRangeControl.log` に書き出す |
+
+### ゲーム内の操作
+
+道路ツールを選ぶと、ツールオプション欄に「ガイドラインの到達距離」が出ます。
+
+- ガイドラインのアイコン: Modの効果のオン/オフ
+- 矢印ボタン: 到達距離を 32 m ずつ増減。間に今の値を表示します
 
 ### セーブデータ
 

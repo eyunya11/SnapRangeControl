@@ -35,6 +35,27 @@ namespace SnapRangeControl
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.DebugLogging)), "Debug logging" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.DebugLogging)), "Write guide line snap distances to the mod log file (Logs/SnapRangeControl.log). For troubleshooting only." },
+
+                { m_Setting.GetOptionGroupLocaleID(Setting.kKeyBindingGroup), "Key bindings (road tool only)" },
+                { m_Setting.GetBindingMapLocaleID(), "Snap Range Control" },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IncreaseReachBinding)), "Increase guide line reach" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.IncreaseReachBinding)), $"Increase the guide line reach by {Setting.kReachStep} m. Works only while the road tool is selected and the mod is on." },
+                { m_Setting.GetBindingKeyLocaleID(Setting.kIncreaseReachAction), "Increase guide line reach" },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.DecreaseReachBinding)), "Decrease guide line reach" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.DecreaseReachBinding)), $"Decrease the guide line reach by {Setting.kReachStep} m. Works only while the road tool is selected and the mod is on." },
+                { m_Setting.GetBindingKeyLocaleID(Setting.kDecreaseReachAction), "Decrease guide line reach" },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ToggleEnabledBinding)), "Toggle Snap Range Control" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.ToggleEnabledBinding)), "Turn the mod's effect on or off. Works only while the road tool is selected." },
+                { m_Setting.GetBindingKeyLocaleID(Setting.kToggleEnabledAction), "Toggle Snap Range Control" },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ResetBindings)), "Reset key bindings" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.ResetBindings)), "Remove all key bindings of this mod (no keys are assigned by default)." },
+
+                // Tool options panel (used by the UI module)
+                { "SnapRangeControl.UI.SectionTitle", "Guide line reach" },
+                { "SnapRangeControl.UI.ToggleTooltip", "Limit guide line reach (Snap Range Control)" },
+                { "SnapRangeControl.UI.DecreaseTooltip", $"Decrease guide line reach by {Setting.kReachStep} m" },
+                { "SnapRangeControl.UI.IncreaseTooltip", $"Increase guide line reach by {Setting.kReachStep} m" },
+                { "SnapRangeControl.UI.Off", "Off" },
             };
         }
 
@@ -73,6 +94,27 @@ namespace SnapRangeControl
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.DebugLogging)), "デバッグログ" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.DebugLogging)), "ガイドラインへのスナップ距離を、Mod用のログ（Logs/SnapRangeControl.log）に書き出します。不具合調査用です。" },
+
+                { m_Setting.GetOptionGroupLocaleID(Setting.kKeyBindingGroup), "キー割り当て（道路ツール使用中のみ）" },
+                { m_Setting.GetBindingMapLocaleID(), "Snap Range Control" },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IncreaseReachBinding)), "ガイドラインの到達距離を増やす" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.IncreaseReachBinding)), $"到達距離を {Setting.kReachStep} m 増やします。Modがオンで、道路ツールを選んでいるときだけ効きます。" },
+                { m_Setting.GetBindingKeyLocaleID(Setting.kIncreaseReachAction), "ガイドラインの到達距離を増やす" },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.DecreaseReachBinding)), "ガイドラインの到達距離を減らす" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.DecreaseReachBinding)), $"到達距離を {Setting.kReachStep} m 減らします。Modがオンで、道路ツールを選んでいるときだけ効きます。" },
+                { m_Setting.GetBindingKeyLocaleID(Setting.kDecreaseReachAction), "ガイドラインの到達距離を減らす" },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ToggleEnabledBinding)), "Snap Range Control のオン/オフ" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.ToggleEnabledBinding)), "Modの効果をオン/オフします。道路ツールを選んでいるときだけ効きます。" },
+                { m_Setting.GetBindingKeyLocaleID(Setting.kToggleEnabledAction), "Snap Range Control のオン/オフ" },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ResetBindings)), "キー割り当てを戻す" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.ResetBindings)), "このModのキー割り当てをすべて外します（既定ではキーを割り当てていません）。" },
+
+                // ツールオプション欄（UIモジュールが使う）
+                { "SnapRangeControl.UI.SectionTitle", "ガイドラインの到達距離" },
+                { "SnapRangeControl.UI.ToggleTooltip", "ガイドラインの到達距離を制限する（Snap Range Control）" },
+                { "SnapRangeControl.UI.DecreaseTooltip", $"到達距離を {Setting.kReachStep} m 減らす" },
+                { "SnapRangeControl.UI.IncreaseTooltip", $"到達距離を {Setting.kReachStep} m 増やす" },
+                { "SnapRangeControl.UI.Off", "オフ" },
             };
         }
 
