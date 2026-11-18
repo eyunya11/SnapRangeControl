@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <rect width="1024" height="1024" fill="#1a2636"/>
+  <g fill="#213146">
+    <rect x="40" y="250" width="150" height="110" rx="10"/>
+    <rect x="215" y="250" width="120" height="110" rx="10"/>
+    <rect x="40" y="385" width="295" height="150" rx="10"/>
+    <rect x="40" y="710" width="200" height="130" rx="10"/>
+    <rect x="40" y="865" width="200" height="120" rx="10"/>
+    <rect x="265" y="710" width="200" height="275" rx="10"/>
+  </g>
+  <g fill="#1e2d41">
+    <rect x="760" y="250" width="224" height="140" rx="10"/>
+    <rect x="760" y="415" width="224" height="120" rx="10"/>
+  </g>
+
+  <text x="512" y="150" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="88" font-weight="700" fill="#ffffff">Snap Range Control</text>
+
+  <rect x="0" y="592" width="380" height="56" fill="#7d8796"/>
+  <line x1="0" y1="620" x2="372" y2="620" stroke="#e8edf3" stroke-width="4" stroke-dasharray="26 20"/>
+  <circle cx="380" cy="620" r="28" fill="#7d8796"/>
+
+  <line x1="408" y1="620" x2="700" y2="620" stroke="#a8c0ff" stroke-width="10"/>
+  <line x1="712" y1="620" x2="1024" y2="620" stroke="#a8c0ff" stroke-width="10" stroke-dasharray="4 22" stroke-linecap="round" opacity="0.35"/>
+
+  <line x1="380" y1="530" x2="700" y2="530" stroke="#ffb547" stroke-width="4"/>
+  <line x1="380" y1="508" x2="380" y2="552" stroke="#ffb547" stroke-width="4"/>
+  <line x1="700" y1="508" x2="700" y2="552" stroke="#ffb547" stroke-width="4"/>
+
+  <rect x="392" y="400" width="296" height="80" rx="40" fill="#26374b" stroke="#ffb547" stroke-width="3"/>
+  <circle cx="436" cy="440" r="28" fill="#33475f"/>
+  <path d="M444 424 L428 440 L444 456" fill="none" stroke="#e8edf3" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="644" cy="440" r="28" fill="#ffb547"/>
+  <path d="M636 424 L652 440 L636 456" fill="none" stroke="#3a2600" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="540" y="457" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="46" font-weight="600" fill="#ffffff">128 m</text>
+  <path d="M652 446 L652 500 L665 488 L675 511 L685 506 L675 484 L693 483 Z" fill="#ffffff" stroke="#1a2636" stroke-width="3" stroke-linejoin="round"/>
+
+  <rect x="628" y="568" width="16" height="104" rx="8" fill="#ffb547" opacity="0.15"/>
+  <rect x="660" y="568" width="16" height="104" rx="8" fill="#ffb547" opacity="0.35"/>
+  <rect x="692" y="568" width="16" height="104" rx="8" fill="#ffb547"/>
+  <path d="M728 600 L746 620 L728 640" fill="none" stroke="#ffb547" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M752 600 L770 620 L752 640" fill="none" stroke="#ffb547" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+
+  <rect x="540" y="634" width="40" height="300" fill="#cfe0ff" opacity="0.28"/>
+  <line x1="560" y1="934" x2="560" y2="640" stroke="#ffffff" stroke-width="4" stroke-dasharray="18 14" opacity="0.85"/>
+  <circle cx="560" cy="620" r="17" fill="#ffffff"/>
+  <circle cx="560" cy="620" r="30" fill="none" stroke="#ffffff" stroke-width="4" opacity="0.6"/>
+  <circle cx="630" cy="790" r="36" fill="#3ccf8e"/>
+  <path d="M612 791 L626 805 L650 776" fill="none" stroke="#10331f" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <rect x="840" y="700" width="40" height="234" fill="#cfe0ff" opacity="0.28"/>
+  <line x1="860" y1="934" x2="860" y2="706" stroke="#ffffff" stroke-width="4" stroke-dasharray="18 14" opacity="0.85"/>
+  <circle cx="860" cy="680" r="14" fill="none" stroke="#ffffff" stroke-width="4"/>
+  <circle cx="930" cy="790" r="36" fill="#ff6b6b"/>
+  <path d="M914 774 L946 806 M946 774 L914 806" fill="none" stroke="#3d1010" stroke-width="9" stroke-linecap="round"/>
+</svg>
