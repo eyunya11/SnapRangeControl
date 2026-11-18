@@ -11,5 +11,7 @@ _decompiled/
 bin/
 obj/
 Library/
+ui/node_modules/
+ui/build/
 .vs/
 *.user
