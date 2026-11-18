@@ -209,13 +209,13 @@ namespace SnapRangeControl
                     return;
 
                 ControlPoint snapped = controlPoints[controlPoints.Length - 1];
-                float reach = GetGuideLineReach(snapped, snapLines);
+                float reach = GetGuideLineReach(snapped, snapLines, out float farthestOrigin, out int lineCount, out int directionCount);
                 if (reach < 0f)
                     return;
 
                 bool reject = settings.IsLimiting && reach > settings.MaxGuideReach;
                 if (settings.DebugLogging)
-                    DebugLog(reach, reject, settings.MaxGuideReach, CountNearGuideLines(snapped, snapLines, settings.MaxGuideReach));
+                    DebugLog(reach, reject, settings.MaxGuideReach, CountNearGuideLines(snapped, snapLines, settings.MaxGuideReach), farthestOrigin, lineCount, directionCount);
                 if (!reject)
                     return;
 
@@ -258,8 +258,18 @@ namespace SnapRangeControl
         /// </summary>
         private static float GetGuideLineReach(ControlPoint snapped, NativeList<SnapLine> snapLines)
         {
+            return GetGuideLineReach(snapped, snapLines, out _, out _, out _);
+        }
+
+        /// <param name="farthestOrigin">Farthest origin among all guide lines through the point (the measure used before collinear lines were grouped).</param>
+        /// <param name="lineCount">Number of guide lines through the point.</param>
+        /// <param name="directionCount">Number of distinct directions among them (2 or more = an intersection).</param>
+        private static float GetGuideLineReach(ControlPoint snapped, NativeList<SnapLine> snapLines, out float farthestOrigin, out int lineCount, out int directionCount)
+        {
             float2 p = snapped.m_Position.xz;
             int count = 0;
+            farthestOrigin = -1f;
+            directionCount = 0;
             for (int i = 0; i < snapLines.Length; i++)
             {
                 SnapLine line = snapLines[i];
@@ -287,15 +297,25 @@ namespace SnapRangeControl
             float result = -1f;
             for (int i = 0; i < count; i++)
             {
+                farthestOrigin = math.max(farthestOrigin, s_OnLineReaches[i]);
+
                 // Nearest origin among the lines running along the same line as line i.
                 float nearest = s_OnLineReaches[i];
+                bool firstOfItsDirection = true;
                 for (int j = 0; j < count; j++)
                 {
                     if (math.abs(math.dot(s_OnLineDirections[i], s_OnLineDirections[j])) >= kSameLineDot)
+                    {
                         nearest = math.min(nearest, s_OnLineReaches[j]);
+                        if (j < i)
+                            firstOfItsDirection = false;
+                    }
                 }
+                if (firstOfItsDirection)
+                    directionCount++;
                 result = math.max(result, nearest);
             }
+            lineCount = count;
             return result;
         }
 
@@ -316,14 +336,16 @@ namespace SnapRangeControl
             return count;
         }
 
-        private static void DebugLog(float reach, bool rejected, int limit, int nearGuideLines)
+        private static void DebugLog(float reach, bool rejected, int limit, int nearGuideLines, float farthestOrigin, int lineCount, int directionCount)
         {
             float now = Time.realtimeSinceStartup;
             if (!rejected && math.abs(reach - s_LastDebugReach) < 1f && now - s_LastDebugLogTime < 0.5f)
                 return;
             s_LastDebugLogTime = now;
             s_LastDebugReach = reach;
-            Mod.log.Info($"Guide line snap: reach={reach:F1} m, limit={limit} m, {(rejected ? "REJECTED" : "kept")}, guide lines within limit={nearGuideLines}{(rejected && nearGuideLines > 0 ? " (also dropped)" : "")}");
+            Mod.log.Info($"Guide line snap: reach={reach:F1} m, limit={limit} m, {(rejected ? "REJECTED" : "kept")}, " +
+                $"farthest origin={farthestOrigin:F1} m, lines through point={lineCount}, directions={directionCount}, " +
+                $"guide lines within limit={nearGuideLines}{(rejected && nearGuideLines > 0 ? " (also dropped)" : "")}");
         }
     }
 }
