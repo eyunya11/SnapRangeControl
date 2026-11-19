@@ -14,7 +14,7 @@ In the vanilla road tool, guide lines extend up to 512 m from road ends, so new 
 - Adjust it in the road tool's tool options panel, with optional key bindings (no keys assigned by default), or in the settings.
 
 - Default (512 m) = vanilla behaviour. "Reset to defaults" button included.
-- Known limitation: where a distant guide line would win, guide lines are skipped for that position, so a nearby guide line may not snap there either.
+- Guide lines of nearby roads keep working, even where a distant road's guide line crosses them.
 - Roads only. Other networks and other snapping options are unchanged.
 - Stores only its own settings. Never writes to save games.
 - Supported game version: 1.6.4f1. If the patched code changes after a game update, the mod disables itself and logs an error.
@@ -30,7 +30,7 @@ In the vanilla road tool, guide lines extend up to 512 m from road ends, so new 
 - 道路ツールのツールオプション欄、キー（既定では未割り当て）、設定画面のどれからでも変えられます。
 
 - 既定値（512 m）はバニラと同じ動きです。「既定値に戻す」ボタンもあります。
-- 既知の制限: 遠いガイドラインにスナップしそうな位置ではガイドライン自体を使わないため、近くのガイドラインにもスナップしないことがあります。
+- 遠い道路のガイドラインが交差する位置でも、近い道路のガイドラインにはスナップします。
 - 道路にだけ効きます。ほかのネットワークやスナップ設定は変わりません。
 - 保存するのは自分の設定だけで、セーブデータには書き込みません。
 - 対応ゲームバージョン: 1.6.4f1。アップデートでパッチ対象が変わった場合は、自分を無効にしてログにエラーを出します。

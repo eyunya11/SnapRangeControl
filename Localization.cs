@@ -27,7 +27,7 @@ namespace SnapRangeControl
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.Enabled)), "When off, the road tool behaves exactly like the unmodded game." },
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.MaxGuideReach)), "Guide line reach" },
-                { m_Setting.GetOptionDescLocaleID(nameof(Setting.MaxGuideReach)), $"How far from the end of an existing road its guide lines can snap the road tool. The game default is {Setting.kVanillaGuideReach} m (no change). Lower values stop snapping to guide lines of distant roads. When that happens, guide lines are skipped entirely for that position, so a nearby guide line may not snap there either. Only affects roads, not other networks." },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.MaxGuideReach)), $"How far from the end of an existing road its guide lines can snap the road tool. The game default is {Setting.kVanillaGuideReach} m (no change). Lower values stop snapping to guide lines of distant roads. Guide lines of nearby roads keep working. Only affects roads, not other networks." },
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ResetToDefaults)), "Reset to defaults" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.ResetToDefaults)), "Restore the default settings (same behaviour as the unmodded game)." },
@@ -86,7 +86,7 @@ namespace SnapRangeControl
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.Enabled)), "オフにすると、道路ツールはModなしのときと同じ動きになります。" },
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.MaxGuideReach)), "ガイドラインの到達距離" },
-                { m_Setting.GetOptionDescLocaleID(nameof(Setting.MaxGuideReach)), $"既存の道路の端から、どこまでの距離でガイドラインへのスナップが効くかを決めます。ゲームの既定は {Setting.kVanillaGuideReach} m（変更なし）です。小さくすると、離れた道路のガイドラインにスナップしなくなります。その場合、その位置ではガイドライン自体を使わないため、近くのガイドラインにもスナップしないことがあります。道路にだけ効き、ほかのネットワークには影響しません。" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.MaxGuideReach)), $"既存の道路の端から、どこまでの距離でガイドラインへのスナップが効くかを決めます。ゲームの既定は {Setting.kVanillaGuideReach} m（変更なし）です。小さくすると、離れた道路のガイドラインにスナップしなくなります。近くの道路のガイドラインには、これまでどおりスナップします。道路にだけ効き、ほかのネットワークには影響しません。" },
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ResetToDefaults)), "既定値に戻す" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.ResetToDefaults)), "設定を既定値（Modなしと同じ動き）に戻します。" },

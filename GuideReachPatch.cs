@@ -22,7 +22,14 @@ namespace SnapRangeControl
     /// which schedules SnapJob. Its result is consumed in the same frame by FixControlPoints and the
     /// definition jobs, so fixing the snap result here needs no preview repair.
     /// After SnapJob finishes, if the snapped point lies on a guide line farther than the configured reach
-    /// from that guide line's origin (the road end), the snap is recomputed once with guide lines disabled.
+    /// from that guide line's origin (the road end), the snap is recomputed without the distant guide lines:
+    ///   1. The guide lines within the reach are saved from the first run.
+    ///   2. SnapJob runs again with guide lines disabled (all other snapping as usual).
+    ///   3. The saved guide lines are added back with the game's own ToolUtils.AddSnapPosition/AddSnapLine,
+    ///      which gives the same choice vanilla would make if the distant guide lines did not exist
+    ///      (the other snap stages only add candidates around the raw cursor, so the order does not matter).
+    ///   4. If a guide line candidate wins, SnapJob runs a third time from that point with all position-moving
+    ///      snaps disabled, so the game applies its own height, elevation and middle point handling.
     ///
     /// If any target member is missing (e.g. after a game update), nothing is patched and the mod stays inactive.
     /// </summary>
@@ -44,6 +51,17 @@ namespace SnapRangeControl
         private static AccessTools.FieldRef<ToolBaseSystem, Snap> s_SnapOnMask;
         private static AccessTools.FieldRef<ToolBaseSystem, Snap> s_SnapOffMask;
         private static Func<NetToolSystem, JobHandle, bool, JobHandle> s_SnapControlPoints;
+
+        /// <summary>
+        /// Snaps that move the point. Disabled for the final run, which only lets the game post-process a point
+        /// that was already chosen (height, elevation, middle point, parent object, world bounds).
+        /// </summary>
+        private const Snap kPositionSnaps = Snap.ExistingGeometry | Snap.NearbyGeometry | Snap.GuideLines | Snap.CellLength |
+            Snap.StraightDirection | Snap.ObjectSide | Snap.LotGrid | Snap.ZoneGrid | Snap.Shoreline;
+
+        // Guide lines within the reach, saved from the first run (main thread only).
+        private static SnapLine[] s_NearLines = new SnapLine[16];
+        private static int s_NearLineCount;
 
         private static bool s_InRerun;
         private static bool s_Disabled;
@@ -213,33 +231,84 @@ namespace SnapRangeControl
                 if (reach < 0f)
                     return;
 
-                bool reject = settings.IsLimiting && reach > settings.MaxGuideReach;
-                if (settings.DebugLogging)
-                    DebugLog(reach, reject, settings.MaxGuideReach, CountNearGuideLines(snapped, snapLines, settings.MaxGuideReach), farthestOrigin, lineCount, directionCount);
+                int limit = settings.MaxGuideReach;
+                bool reject = settings.IsLimiting && reach > limit;
                 if (!reject)
+                {
+                    if (settings.DebugLogging)
+                        DebugLog(reach, false, limit, 0, farthestOrigin, lineCount, directionCount, null);
                     return;
+                }
 
                 // SnapJob does not change the number of control points outside Replace mode; bail out if it did.
                 if (controlPoints.Length != s_RawPointCount)
                     return;
 
-                // Recompute the snap once from the unsnapped points with guide lines disabled.
-                for (int i = 0; i < s_RawPointCount; i++)
-                    controlPoints[i] = s_RawPoints[i];
-                ref Snap onMask = ref s_SnapOnMask(__instance);
-                Snap savedOnMask = onMask;
-                onMask &= ~Snap.GuideLines;
-                s_InRerun = true;
+                // 1. Keep the guide lines whose own snap position is within the reach. The next run clears m_SnapLines.
+                SaveNearGuideLines(snapLines, limit);
+
+                // 2. Snap again from the unsnapped points with guide lines disabled.
+                RestoreRawPoints(controlPoints);
+                __result = RunSnapJob(__instance, __result, removeUpgrade, ~Snap.GuideLines);
+                __result.Complete();
+                controlPoints = __instance.GetControlPoints(out cpDeps);
+                snapLines = __instance.GetSnapLines(out slDeps);
+                JobHandle.CombineDependencies(cpDeps, slDeps).Complete();
+                if (controlPoints.Length != s_RawPointCount)
+                    return;
+
+                // 3. Add the near guide lines back, the way SnapJob adds them, and see whether one of them wins.
+                ControlPoint withoutGuides = controlPoints[controlPoints.Length - 1];
+                ControlPoint best = withoutGuides;
+                var scratch = new NativeList<SnapLine>(snapLines.Length + s_NearLineCount, Allocator.Temp);
                 try
                 {
-                    // The snap mask is copied into the job when it is scheduled, so it can be restored right after.
-                    __result = s_SnapControlPoints(__instance, __result, removeUpgrade);
+                    for (int i = 0; i < snapLines.Length; i++)
+                        scratch.Add(snapLines[i]);
+                    for (int i = 0; i < s_NearLineCount; i++)
+                    {
+                        ToolUtils.AddSnapPosition(ref best, s_NearLines[i].m_ControlPoint);
+                        ToolUtils.AddSnapLine(ref best, scratch, s_NearLines[i]);
+                    }
                 }
                 finally
                 {
-                    s_InRerun = false;
-                    onMask = savedOnMask;
+                    scratch.Dispose();
                 }
+
+                bool guideWins = !best.Equals(withoutGuides);
+                if (guideWins)
+                {
+                    // 4. Let the game post-process the chosen point: snap from it with position-moving snaps disabled.
+                    RestoreRawPoints(controlPoints);
+                    ControlPoint raw = s_RawPoints[s_RawPointCount - 1];
+                    ControlPoint start = raw;
+                    start.m_HitPosition.xz = best.m_Position.xz;
+                    start.m_Position.xz = best.m_Position.xz;
+                    start.m_Direction = best.m_Direction;
+                    controlPoints[controlPoints.Length - 1] = start;
+
+                    __result = RunSnapJob(__instance, __result, removeUpgrade, ~kPositionSnaps);
+                    __result.Complete();
+                    controlPoints = __instance.GetControlPoints(out cpDeps);
+                    snapLines = __instance.GetSnapLines(out slDeps);
+                    JobHandle.CombineDependencies(cpDeps, slDeps).Complete();
+                    if (controlPoints.Length == s_RawPointCount)
+                    {
+                        // Keep the real cursor position as the hit position, as vanilla does for a guide line snap.
+                        ControlPoint final = controlPoints[controlPoints.Length - 1];
+                        final.m_HitPosition = raw.m_HitPosition;
+                        final.m_SnapPriority = best.m_SnapPriority;
+                        controlPoints[controlPoints.Length - 1] = final;
+                    }
+                }
+
+                // The guide line overlay only draws lines in m_SnapLines that the point lies on, so put the near ones back.
+                for (int i = 0; i < s_NearLineCount; i++)
+                    snapLines.Add(s_NearLines[i]);
+
+                if (settings.DebugLogging)
+                    DebugLog(reach, true, limit, s_NearLineCount, farthestOrigin, lineCount, directionCount, guideWins ? "snapped to a guide line within the reach" : "snapped without guide lines");
             }
             catch (Exception e)
             {
@@ -320,23 +389,51 @@ namespace SnapRangeControl
         }
 
         /// <summary>
-        /// Counts guide lines whose origin is within the limit of the cursor. When a snap is rejected these are
-        /// dropped too (the rerun disables all guide lines), so this shows what a rejection costs.
+        /// Saves the guide lines whose own snap position (the cursor projected onto the line) is within the reach.
+        /// A distant line running along the same line as a near one is left out; the near one covers it.
         /// </summary>
-        private static int CountNearGuideLines(ControlPoint snapped, NativeList<SnapLine> snapLines, int limit)
+        private static void SaveNearGuideLines(NativeList<SnapLine> snapLines, int limit)
         {
-            float2 hit = snapped.m_HitPosition.xz;
-            int count = 0;
+            s_NearLineCount = 0;
             for (int i = 0; i < snapLines.Length; i++)
             {
                 SnapLine line = snapLines[i];
-                if ((line.m_Flags & SnapLineFlags.GuideLine) != 0 && math.distance(line.m_Curve.a.xz, hit) <= limit)
-                    count++;
+                if ((line.m_Flags & SnapLineFlags.GuideLine) == 0)
+                    continue;
+                if (math.distance(line.m_Curve.a.xz, line.m_ControlPoint.m_Position.xz) > limit)
+                    continue;
+                if (s_NearLines.Length <= s_NearLineCount)
+                    Array.Resize(ref s_NearLines, s_NearLines.Length * 2);
+                s_NearLines[s_NearLineCount++] = line;
             }
-            return count;
         }
 
-        private static void DebugLog(float reach, bool rejected, int limit, int nearGuideLines, float farthestOrigin, int lineCount, int directionCount)
+        private static void RestoreRawPoints(NativeList<ControlPoint> controlPoints)
+        {
+            for (int i = 0; i < s_RawPointCount; i++)
+                controlPoints[i] = s_RawPoints[i];
+        }
+
+        /// <summary>Runs SnapControlPoints again (without re-entering this patch) with the snap mask limited to keepMask.</summary>
+        private static JobHandle RunSnapJob(NetToolSystem tool, JobHandle inputDeps, bool removeUpgrade, Snap keepMask)
+        {
+            ref Snap onMask = ref s_SnapOnMask(tool);
+            Snap savedOnMask = onMask;
+            onMask &= keepMask;
+            s_InRerun = true;
+            try
+            {
+                // The snap mask is copied into the job when it is scheduled, so it can be restored right after.
+                return s_SnapControlPoints(tool, inputDeps, removeUpgrade);
+            }
+            finally
+            {
+                s_InRerun = false;
+                onMask = savedOnMask;
+            }
+        }
+
+        private static void DebugLog(float reach, bool rejected, int limit, int nearGuideLines, float farthestOrigin, int lineCount, int directionCount, string outcome)
         {
             float now = Time.realtimeSinceStartup;
             if (!rejected && math.abs(reach - s_LastDebugReach) < 1f && now - s_LastDebugLogTime < 0.5f)
@@ -344,8 +441,8 @@ namespace SnapRangeControl
             s_LastDebugLogTime = now;
             s_LastDebugReach = reach;
             Mod.log.Info($"Guide line snap: reach={reach:F1} m, limit={limit} m, {(rejected ? "REJECTED" : "kept")}, " +
-                $"farthest origin={farthestOrigin:F1} m, lines through point={lineCount}, directions={directionCount}, " +
-                $"guide lines within limit={nearGuideLines}{(rejected && nearGuideLines > 0 ? " (also dropped)" : "")}");
+                $"farthest origin={farthestOrigin:F1} m, lines through point={lineCount}, directions={directionCount}" +
+                (rejected ? $", guide lines within limit={nearGuideLines}, result: {outcome}" : ""));
         }
     }
 }
