@@ -19,7 +19,7 @@ In the vanilla road tool, guide lines extend up to **512 m** from the ends of ex
 This mod adds a **Guide line reach** slider. When the snapped point lies on a guide line farther than this distance from the guide line's origin (the road end), that snap is ignored and the snap is recomputed without guide lines.
 
 - The default (512 m) is the same as the unmodded game.
-- **Known limitation:** when a distant guide line would win, guide lines are skipped entirely for that position. A nearby guide line may then not snap there either (other snapping such as existing roads and straight direction still works).
+- Guide lines of nearby roads keep working even where a distant road's guide line crosses or runs close to them.
 - Only affects roads placed with the road tool. Other networks (rails, pipes, power lines, waterways) are unchanged.
 - The 8 m snapping width and all other snapping options are unchanged.
 
@@ -54,7 +54,7 @@ The mod stores only its own settings file. It never writes to save games, so rem
 
 ## How it works
 
-`NetToolSystem.SnapJob` is Burst compiled and cannot be patched. The mod adds a Harmony prefix/postfix to the managed `NetToolSystem.SnapControlPoints` method that schedules it. After the job finishes, it checks whether the snapped point lies on a guide line beyond the configured reach, and if so, runs the snap once more with guide lines disabled.
+`NetToolSystem.SnapJob` is Burst compiled and cannot be patched. The mod adds a Harmony prefix/postfix to the managed `NetToolSystem.SnapControlPoints` method that schedules it. After the job finishes, it checks whether the snapped point lies on a guide line beyond the configured reach. If so, it runs the snap again without guide lines, adds back the guide lines within the reach using the game's own snap selection functions, and, when one of them wins, lets the game finish that point (height, elevation) with one more run.
 
 ## Building
 
@@ -94,7 +94,7 @@ MIT
 このModは「ガイドラインの到達距離」のスライダーを追加します。スナップ先のガイドラインが、その始点（道路の端）からこの距離より遠い場合、そのスナップを無視し、ガイドラインを使わずにスナップし直します。
 
 - 既定値（512 m）は、Modなしと同じ動きです。
-- **既知の制限:** 遠いガイドラインにスナップしそうな位置では、ガイドライン自体を使わずにスナップし直します。そのため、その位置では近くのガイドラインにもスナップしないことがあります（既存の道路や直線方向へのスナップは効きます）。
+- 遠い道路のガイドラインが交差したり近くを通ったりする位置でも、近い道路のガイドラインにはスナップします。
 - 道路ツールで置く道路にだけ効きます。線路・水道管・電線・水路などは変わりません。
 - 8 m のスナップ幅や、ほかのスナップ設定は変わりません。
 
